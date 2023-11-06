@@ -91,27 +91,81 @@ namespace Tutor.Controllers
 
         [HttpGet("get-user")]
         [Authorize]
-        public async Task<IActionResult> GetUserByTokne()
+        public async Task<IActionResult> GetUserByToken()
         {
-            var Email = User.FindFirst(ClaimTypes.Email)?.Value;
-         
-            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == Email);
-
-            if (user == null)
+            try
             {
-                return NotFound(new { message = "User not found"} ); // User not found
+
+
+                var Email = User.FindFirst(ClaimTypes.Email)?.Value;
+
+                var user = await _db.Users.Include(u => u.UserRole).FirstOrDefaultAsync(u => u.Email == Email);
+
+                if (user == null)
+                {
+                    return NotFound(new { message = "User not found" }); // User not found
+                }
+
+                UserDTO userDto = null;
+                if(user.RoleId == 1)
+                {
+                    userDto = new AdminDTO
+                    {
+                        Id = user.Id,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        Email = user.Email,
+                        UserRole = new RoleDTO
+                        {
+                            Id = user.UserRole.Id,
+                            Name = user.UserRole.Name
+                        }
+                    };
+
+                } 
+                else if (user.RoleId == 3)
+                {
+                    userDto = new TutorDTO
+                    {
+                        Id = user.Id,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        Email = user.Email,
+                        EmailVerified = user.EmailVerified,
+                        Status = user.Status,
+                        UserRole = new RoleDTO
+                        {
+                            Id = user.UserRole.Id,
+                            Name = user.UserRole.Name
+                        }
+                    };
+
+                } else if (user.RoleId == 4)
+                {
+                    userDto = new StudentDTO
+                    {
+                        Id = user.Id,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        Email = user.Email,
+                        EmailVerified = user.EmailVerified,
+                        Status = user.Status,
+                        UserRole = new RoleDTO
+                        {
+                            Id = user.UserRole.Id,
+                            Name = user.UserRole.Name
+                        }
+                    };
+
+                }
+
+
+
+                return Ok(userDto);
+            } catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
-
-            var userDto = new StudentDTO
-            {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                // Add other user properties as needed
-            };
-
-            return Ok(userDto);
         }
 
         private string GenerateToken(UserModel user)

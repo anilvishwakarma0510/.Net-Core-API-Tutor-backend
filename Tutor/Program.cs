@@ -94,3 +94,5 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 app.MapControllers();
+
+app.Run();

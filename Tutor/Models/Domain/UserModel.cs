@@ -22,6 +22,10 @@ namespace Tutor.Models.Domain
         public string Email { get; set; }
 
         [Required]
+        [StringLength(15)]
+        public string PhoneNumber { get; set; } = null;
+
+        [Required]
         [StringLength (100)]
         public string Password { get; set; }
 

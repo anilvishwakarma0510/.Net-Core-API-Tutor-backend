@@ -1,15 +1,16 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Tutor.Models.DTO
 {
     public class LoginDTO
     {
-        //[Required]
+        [Required]
+        [EmailAddress]
         [NotNull]
         public string Email {  get; set; }
 
-        //[Required]
-        [NotNull]
+        [Required]
         public string Password { get; set; }
 
     }

@@ -19,6 +19,7 @@ namespace Tutor.Data
             modelBuilder.Entity<UserModel>().ToTable("users");
             modelBuilder.Entity<UserModel>().Property(u=>u.Id).ValueGeneratedOnAdd();
             modelBuilder.Entity<UserModel>().HasIndex(u => u.Email).IsUnique();
+            modelBuilder.Entity<UserModel>().HasIndex(u => u.PhoneNumber).IsUnique();
 
             //specified user role relation
             modelBuilder.Entity<UserModel>()
@@ -59,6 +60,7 @@ namespace Tutor.Data
                     RoleId = 1,
                     Status = true,
                     Password = BCrypt.Net.BCrypt.HashPassword("12345678"),
+                    PhoneNumber = "9109916688"
                 }
                 );
         }

@@ -29,7 +29,7 @@ namespace Tutor.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO request)
         {
-            var user = await _db.Users.SingleOrDefaultAsync(u => u.Email == request.Email);
+            var user = await _db.Users.Include(u => u.UserRole).SingleOrDefaultAsync(u => u.Email == request.Email);
 
             if (user == null)
             {
@@ -53,15 +53,40 @@ namespace Tutor.Controllers
 
             var token = GenerateToken(user);
 
-            var userDto = new StudentDTO
+            var baseUrl = $"{this.Request.Scheme}://{this.Request.Host.Value}/wwwroot/";
+
+
+            if (user.ProfileImage == null)
+            {
+                user.ProfileImage = baseUrl + "user-profile/default-profile.png";
+            }
+            else
+            {
+                user.ProfileImage = baseUrl + $"user-profile/{user.ProfileImage}";
+            }
+
+
+            UserDTO userDto = new UserDTO
             {
                 Id = user.Id,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
+                EmailVerified = user.EmailVerified,
+                Status = user.Status,
+                ProfileImage = user.ProfileImage, // Get the profile image URL
+                UserRole = new RoleDTO
+                {
+                    Id = user.UserRole.Id,
+                    Name = user.UserRole.Name
+                }
             };
-
-            return Ok(new { token, user = userDto });
+            return Ok(new
+            {
+                message = "Success",
+                user = userDto,
+                token = token
+            });
 
         }
 
@@ -70,23 +95,44 @@ namespace Tutor.Controllers
         [Authorize]
         public async Task<IActionResult> GetUserById(int id)
         {
-            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == id);
+            var user = await _db.Users.Include(u => u.UserRole).FirstOrDefaultAsync(u => u.Id == id);
 
             if (user == null)
             {
                 return NotFound(new { message = "User not found"} ); // User not found
             }
 
-            var userDto = new StudentDTO
+            var baseUrl = $"{this.Request.Scheme}://{this.Request.Host.Value}/wwwroot/";
+
+            if (user.ProfileImage == null)
+            {
+                user.ProfileImage = baseUrl + "user-profile/default-profile.png";
+            }
+            else
+            {
+                user.ProfileImage = baseUrl + $"user-profile/{user.ProfileImage}";
+            }
+
+            UserDTO userDto = new UserDTO
             {
                 Id = user.Id,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
-                // Add other user properties as needed
+                EmailVerified = user.EmailVerified,
+                Status = user.Status,
+                ProfileImage = user.ProfileImage, // Get the profile image URL
+                UserRole = new RoleDTO
+                {
+                    Id = user.UserRole.Id,
+                    Name = user.UserRole.Name
+                }
             };
-
-            return Ok(userDto);
+            return Ok(new
+            {
+                message = "Success",
+                user = userDto
+            });
         }
 
         [HttpGet("get-user")]
@@ -106,62 +152,41 @@ namespace Tutor.Controllers
                     return NotFound(new { message = "User not found" }); // User not found
                 }
 
-                UserDTO userDto = null;
-                if(user.RoleId == 1)
-                {
-                    userDto = new AdminDTO
-                    {
-                        Id = user.Id,
-                        FirstName = user.FirstName,
-                        LastName = user.LastName,
-                        Email = user.Email,
-                        UserRole = new RoleDTO
-                        {
-                            Id = user.UserRole.Id,
-                            Name = user.UserRole.Name
-                        }
-                    };
+                var baseUrl = $"{this.Request.Scheme}://{this.Request.Host.Value}/";
 
-                } 
-                else if (user.RoleId == 3)
+                if (user.ProfileImage == null)
                 {
-                    userDto = new TutorDTO
-                    {
-                        Id = user.Id,
-                        FirstName = user.FirstName,
-                        LastName = user.LastName,
-                        Email = user.Email,
-                        EmailVerified = user.EmailVerified,
-                        Status = user.Status,
-                        UserRole = new RoleDTO
-                        {
-                            Id = user.UserRole.Id,
-                            Name = user.UserRole.Name
-                        }
-                    };
-
-                } else if (user.RoleId == 4)
+                    user.ProfileImage = baseUrl + "user-profile/default-profile.png";
+                }
+                else
                 {
-                    userDto = new StudentDTO
-                    {
-                        Id = user.Id,
-                        FirstName = user.FirstName,
-                        LastName = user.LastName,
-                        Email = user.Email,
-                        EmailVerified = user.EmailVerified,
-                        Status = user.Status,
-                        UserRole = new RoleDTO
-                        {
-                            Id = user.UserRole.Id,
-                            Name = user.UserRole.Name
-                        }
-                    };
-
+                    user.ProfileImage = baseUrl + $"user-profile/{user.ProfileImage}";
                 }
 
 
 
-                return Ok(userDto);
+                UserDTO userDto = new UserDTO
+                {
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    EmailVerified = user.EmailVerified,
+                    Status = user.Status,
+                    ProfileImage = user.ProfileImage, // Get the profile image URL
+                    UserRole = new RoleDTO
+                    {
+                        Id = user.UserRole.Id,
+                        Name = user.UserRole.Name
+                    }
+                };
+                return Ok(new
+                {
+                    message = "Success",
+                    user = userDto
+                });
+
+
             } catch (Exception ex)
             {
                 return BadRequest(ex.Message);

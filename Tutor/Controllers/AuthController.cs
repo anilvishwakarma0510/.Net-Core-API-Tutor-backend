@@ -36,7 +36,7 @@ namespace Tutor.Controllers
                 return Unauthorized(
                     new
                     {
-                        message = "Invalid details"
+                        message = "1Invalid details"
                     }
                 );
             }
@@ -96,6 +96,9 @@ namespace Tutor.Controllers
         public async Task<IActionResult> GetUserById(int id)
         {
             var user = await _db.Users.Include(u => u.UserRole).FirstOrDefaultAsync(u => u.Id == id);
+            //Console.WriteLine("---------------SART--------------");
+            //Console.WriteLine(HttpContext.User.FindFirst(ClaimTypes.Role).Value);
+            //Console.WriteLine("---------------END--------------");
 
             if (user == null)
             {
@@ -196,15 +199,18 @@ namespace Tutor.Controllers
         private string GenerateToken(UserModel user)
         {
 
+            Console.WriteLine("---------------START ROLE--------------");
+            Console.WriteLine(user.UserRole.Name);
+            Console.WriteLine("---------------END ROLE--------------");
 
-           
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email)
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role,user.UserRole.Name),
                 // Add other claims as needed
             };
 

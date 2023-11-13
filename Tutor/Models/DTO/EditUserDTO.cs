@@ -16,7 +16,7 @@ namespace Tutor.Models.DTO
         public string? ConfirmPassword { get; set; }
         [Required] [MinLength(10)] public string PhoneNumber { get; set; }
 
-        public string? ProfileImage { get; set;  }
+        public IFormFile? ProfileImage { get; set;  }
 
         [Required] public int RoleId { get; set; }
 

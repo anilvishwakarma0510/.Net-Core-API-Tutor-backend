@@ -10,6 +10,7 @@ namespace Tutor.Controllers.Admin
 {
     [Route("api/admin/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Administrator")]
     public class UserController : ControllerBase
     {
         private readonly TutorDbContext _db;
@@ -20,9 +21,7 @@ namespace Tutor.Controllers.Admin
         }
 
         [HttpPost("add-user")]
-        [Authorize]
-
-        public async Task<IActionResult> AddUser([FromBody] AddUserDTO request)
+        public async Task<IActionResult> AddUser([FromForm] AddUserDTO request)
         {
             try
             {
@@ -41,7 +40,20 @@ namespace Tutor.Controllers.Admin
                     return BadRequest(new { message = "Phone number is not unique" });
                 }
 
+                string ProfileImage = null;
 
+                if (request.ProfileImage != null && request.ProfileImage.Length > 0)
+                {
+                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + request.ProfileImage.FileName;
+                    var filePath = Path.Combine("wwwroot/user-profile", uniqueFileName);   
+                    
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await request.ProfileImage.CopyToAsync(fileStream);
+                    }
+
+                    ProfileImage = "/user-profile/" + uniqueFileName;
+                }
 
                 var newUser = new UserModel
                 {
@@ -50,7 +62,7 @@ namespace Tutor.Controllers.Admin
                     Email = request.Email,
                     Password = BCrypt.Net.BCrypt.HashPassword(request.Password),
                     PhoneNumber = request.PhoneNumber,
-                    ProfileImage = request.ProfileImage,
+                    ProfileImage = ProfileImage,
                     RoleId = request.RoleId,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now,
@@ -92,8 +104,7 @@ namespace Tutor.Controllers.Admin
         }
 
         [HttpPut("edit-user/{id}")]
-        [Authorize]
-        public async Task<IActionResult> EditUser(int id, [FromBody] EditUserDTO request)
+        public async Task<IActionResult> EditUser(int id, [FromForm] EditUserDTO request)
         {
             try
             {
@@ -118,7 +129,6 @@ namespace Tutor.Controllers.Admin
                 user.LastName = request.LastName;
                 user.Email = request.Email;
                 user.PhoneNumber = request.PhoneNumber;
-                user.ProfileImage = request.ProfileImage;
                 user.RoleId = request.RoleId;
                 user.UpdatedAt = DateTime.Now;
 
@@ -130,6 +140,20 @@ namespace Tutor.Controllers.Admin
                     }
 
                     user.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
+                }
+
+
+                if (request.ProfileImage != null && request.ProfileImage.Length > 0)
+                {
+                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + request.ProfileImage.FileName;
+                    var filePath = Path.Combine("wwwroot/user-profile", uniqueFileName);
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await request.ProfileImage.CopyToAsync(fileStream);
+                    }
+
+                    user.ProfileImage = "/user-profile/" + uniqueFileName;
                 }
 
                 await _db.SaveChangesAsync();
@@ -165,28 +189,36 @@ namespace Tutor.Controllers.Admin
         }
 
         [HttpGet("get-users")]
-        [Authorize]
         public async Task<IActionResult> GetAllUser([FromQuery] SearchDTO req)
         {
             try
             {
                 var query = _db.Users
-                        .Include(u => u.UserRole)
-                        .Where(u =>
-                            (req.search == null || u.FirstName.Contains(req.search) || u.LastName.Contains(req.search) || u.Email.Contains(req.search)) &&
-                            (!req.role.HasValue || u.RoleId == req.role) &&
-                            (string.IsNullOrEmpty(req.search) || u.UserRole.Name == req.search) &&
-                            u.RoleId != 1);
+            .Include(u => u.UserRole)
+            .Where(u => u.RoleId != 1);
+
+                if (!string.IsNullOrEmpty(req.search))
+                {
+                    query = query.Where(u =>
+                        EF.Functions.Like(u.FirstName, "%" + req.search + "%") ||
+                        EF.Functions.Like(u.LastName, "%" + req.search + "%") ||
+                        EF.Functions.Like(u.Email, "%" + req.search + "%") ||
+                        EF.Functions.Like(u.UserRole.Name, "%" + req.search + "%%"));
+                }
+
+                if (req.role.HasValue)
+                {
+                    query = query.Where(u => u.RoleId == req.role);
+                }
+
 
                 int totalUsers = await query.CountAsync();
 
-                int offset = (int)((req.page - 1) * req.limit);
-                
-                
+                int offset = req.page.HasValue ? (int)((req.page.Value - 1) * req.limit.GetValueOrDefault()) : 0;
 
                 var users = await query.OrderByDescending(u => u.Id)
                     .Skip(offset)
-                    .Take((int)req.limit)
+                    .Take(req.limit.GetValueOrDefault())
                     .ToListAsync();
 
                 var userDtos = users.Select(user => new UserDTO
@@ -209,7 +241,7 @@ namespace Tutor.Controllers.Admin
                 {
                     status = 1,
                     message = "Success",
-                    users = users
+                    users = userDtos // Use userDtos instead of users
                 });
 
             }

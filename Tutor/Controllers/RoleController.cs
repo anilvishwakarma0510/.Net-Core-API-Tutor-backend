@@ -19,6 +19,7 @@ namespace Tutor.Controllers
         }
 
         [HttpGet("get-roles")]
+        
         public async Task<IActionResult> RetRoles() { 
             try
             {

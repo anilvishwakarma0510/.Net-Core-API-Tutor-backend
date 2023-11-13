@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Tutor.Models.Domain
 {
     public class UserModel
-    {
+    { 
         public int Id { get; set; }
 
         [Required]

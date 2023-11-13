@@ -15,6 +15,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowOrigin",
+           builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()
+        ) ;
+});
+
 
 var provider = builder.Services.BuildServiceProvider();
 var config = provider.GetService<IConfiguration>();
@@ -78,7 +85,7 @@ builder.Services.AddSwaggerGen(
 
 var app = builder.Build();
 
-
+app.UseCors("AllowOrigin");
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -53,7 +53,7 @@ namespace Tutor.Controllers
 
             var token = GenerateToken(user);
 
-            var baseUrl = $"{this.Request.Scheme}://{this.Request.Host.Value}/wwwroot/";
+            var baseUrl = $"{this.Request.Scheme}://{this.Request.Host.Value}/";
 
 
             if (user.ProfileImage == null)
@@ -105,7 +105,7 @@ namespace Tutor.Controllers
                 return NotFound(new { message = "User not found"} ); // User not found
             }
 
-            var baseUrl = $"{this.Request.Scheme}://{this.Request.Host.Value}/wwwroot/";
+            var baseUrl = $"{this.Request.Scheme}://{this.Request.Host.Value}/";
 
             if (user.ProfileImage == null)
             {

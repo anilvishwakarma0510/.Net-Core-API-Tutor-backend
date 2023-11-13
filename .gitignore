@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /Tutor/wwwroot/user-profile/dummy-profile.png
 /Tutor/wwwroot/user-profile
+/Tutor/appsettings.json

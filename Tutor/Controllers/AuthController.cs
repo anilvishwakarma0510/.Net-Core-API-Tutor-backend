@@ -62,7 +62,7 @@ namespace Tutor.Controllers
             }
             else
             {
-                user.ProfileImage = baseUrl + $"user-profile/{user.ProfileImage}";
+                user.ProfileImage = baseUrl + user.ProfileImage;
             }
 
 
@@ -113,7 +113,7 @@ namespace Tutor.Controllers
             }
             else
             {
-                user.ProfileImage = baseUrl + $"user-profile/{user.ProfileImage}";
+                user.ProfileImage = baseUrl + user.ProfileImage;
             }
 
             UserDTO userDto = new UserDTO
@@ -163,7 +163,7 @@ namespace Tutor.Controllers
                 }
                 else
                 {
-                    user.ProfileImage = baseUrl + $"user-profile/{user.ProfileImage}";
+                    user.ProfileImage = baseUrl + user.ProfileImage;
                 }
 
 
@@ -196,6 +196,100 @@ namespace Tutor.Controllers
             }
         }
 
+        [HttpPut("edit-profile")]
+        [Authorize]
+        public async Task<IActionResult> EditProfile([FromForm] EditProfileDTO req)
+        {
+            try
+            {
+                var Email = User.FindFirst(ClaimTypes.Email)?.Value;
+
+                var user = await _db.Users.Include(x => x.UserRole).FirstOrDefaultAsync(u => u.Email == Email);
+
+                if (user == null)
+                {
+                    return NotFound(new { message = "User not found"});
+                }
+
+                if (!string.IsNullOrEmpty(req.Email)){
+                    if(user.RoleId == 1 && user.Email != req.Email)
+                    {
+                        if(await _db.Users.AnyAsync(u => u.Email == req.Email && u.Id != user.Id)) {
+                            user.Email = req.Email;
+                        }
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(req.PhoneNumber)) {
+                    if(user.PhoneNumber != req.PhoneNumber)
+                    {
+                        if(await _db.Users.AnyAsync(u => u.PhoneNumber == req.PhoneNumber && u.Id != user.Id))
+                        {
+                            user.PhoneNumber = req.PhoneNumber;
+                        }
+                    }
+                }
+
+                user.FirstName = req.FirstName;
+                user.LastName = req.LastName;
+
+                if (req.ProfileImage != null && req.ProfileImage.Length > 0) {
+                    var uniqueName = Guid.NewGuid().ToString()+"_"+req.ProfileImage.FileName;
+                    var filePath = Path.Combine("wwwroot/user-profile",uniqueName);
+
+                    using(var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await req.ProfileImage.CopyToAsync(fileStream);
+                    }
+
+                    user.ProfileImage = "user-profile/" + uniqueName;
+
+                }
+
+                await _db.SaveChangesAsync();
+
+                user = await _db.Users.Include(u => u.UserRole).FirstOrDefaultAsync(u => u.Id == user.Id);
+
+                var baseUrl = $"{this.Request.Scheme}://{this.Request.Host.Value}/";
+
+                if (user.ProfileImage == null)
+                {
+                    user.ProfileImage = baseUrl + "user-profile/default-profile.png";
+                }
+                else
+                {
+                    user.ProfileImage = baseUrl + $"{user.ProfileImage}";
+                }
+
+                UserDTO userDto = new UserDTO
+                {
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    EmailVerified = user.EmailVerified,
+                    Status = user.Status,
+                    ProfileImage = user.ProfileImage, // Get the profile image URL
+                    UserRole = new RoleDTO
+                    {
+                        Id = user.UserRole.Id,
+                        Name = user.UserRole.Name
+                    }
+                };
+
+
+
+                return Ok(new
+                {
+                    status=1,
+                    message="Profile has been updated successfully.",
+                    user= userDto
+                });
+            } catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
         private string GenerateToken(UserModel user)
         {
 

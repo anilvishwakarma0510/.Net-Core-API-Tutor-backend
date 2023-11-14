@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <Folder Include="Mapping\" />
+    <Folder Include="wwwroot\user-profile\" />
   </ItemGroup>
 
 </Project>

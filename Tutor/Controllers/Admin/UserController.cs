@@ -52,7 +52,7 @@ namespace Tutor.Controllers.Admin
                         await request.ProfileImage.CopyToAsync(fileStream);
                     }
 
-                    ProfileImage = "/user-profile/" + uniqueFileName;
+                    ProfileImage = "user-profile/" + uniqueFileName;
                 }
 
                 var newUser = new UserModel
@@ -153,7 +153,7 @@ namespace Tutor.Controllers.Admin
                         await request.ProfileImage.CopyToAsync(fileStream);
                     }
 
-                    user.ProfileImage = "/user-profile/" + uniqueFileName;
+                    user.ProfileImage = "user-profile/" + uniqueFileName;
                 }
 
                 await _db.SaveChangesAsync();

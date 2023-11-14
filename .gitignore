@@ -362,5 +362,9 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /Tutor/wwwroot/user-profile/dummy-profile.png
-/Tutor/wwwroot/user-profile
+/Tutor/wwwroot/user-profile/*
 /Tutor/appsettings.json
+/Tutor/Migrations/TutorDbContextModelSnapshot.cs
+/Tutor/Migrations/20231114043134_Initial.cs
+/Tutor/appsettings.json
+/Tutor/Migrations

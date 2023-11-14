@@ -74,6 +74,7 @@ namespace Tutor.Controllers
                 Email = user.Email,
                 EmailVerified = user.EmailVerified,
                 Status = user.Status,
+                PhoneNumber = user.PhoneNumber,
                 ProfileImage = user.ProfileImage, // Get the profile image URL
                 UserRole = new RoleDTO
                 {
@@ -124,6 +125,7 @@ namespace Tutor.Controllers
                 Email = user.Email,
                 EmailVerified = user.EmailVerified,
                 Status = user.Status,
+                PhoneNumber = user.PhoneNumber,
                 ProfileImage = user.ProfileImage, // Get the profile image URL
                 UserRole = new RoleDTO
                 {
@@ -176,6 +178,7 @@ namespace Tutor.Controllers
                     Email = user.Email,
                     EmailVerified = user.EmailVerified,
                     Status = user.Status,
+                    PhoneNumber = user.PhoneNumber,
                     ProfileImage = user.ProfileImage, // Get the profile image URL
                     UserRole = new RoleDTO
                     {
@@ -214,7 +217,7 @@ namespace Tutor.Controllers
                 if (!string.IsNullOrEmpty(req.Email)){
                     if(user.RoleId == 1 && user.Email != req.Email)
                     {
-                        if(await _db.Users.AnyAsync(u => u.Email == req.Email && u.Id != user.Id)) {
+                        if(!await _db.Users.AnyAsync(u => u.Email == req.Email && u.Id != user.Id)) {
                             user.Email = req.Email;
                         }
                     }
@@ -223,7 +226,7 @@ namespace Tutor.Controllers
                 if (!string.IsNullOrEmpty(req.PhoneNumber)) {
                     if(user.PhoneNumber != req.PhoneNumber)
                     {
-                        if(await _db.Users.AnyAsync(u => u.PhoneNumber == req.PhoneNumber && u.Id != user.Id))
+                        if(!await _db.Users.AnyAsync(u => u.PhoneNumber == req.PhoneNumber && u.Id != user.Id))
                         {
                             user.PhoneNumber = req.PhoneNumber;
                         }
@@ -269,6 +272,7 @@ namespace Tutor.Controllers
                     Email = user.Email,
                     EmailVerified = user.EmailVerified,
                     Status = user.Status,
+                    PhoneNumber = user.PhoneNumber,
                     ProfileImage = user.ProfileImage, // Get the profile image URL
                     UserRole = new RoleDTO
                     {
@@ -290,6 +294,52 @@ namespace Tutor.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpPut("change-password")]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO req)
+        {
+            try
+            {
+                var Email = User.FindFirst(ClaimTypes.Email)?.Value;
+
+                var user = await _db.Users.Include(x => x.UserRole).FirstOrDefaultAsync(u => u.Email == Email);
+
+                if (user == null)
+                {
+                    return NotFound(new { message = "User not found" });
+                }
+
+                if(req.NewPassword != req.ConfirmPassword)
+                {
+                    return BadRequest( new { message = "New Password not matched with confirm password"});
+                }
+
+                if(!BCrypt.Net.BCrypt.Verify(req.CurrentPassword,user.Password))
+                {
+                    return BadRequest(new { message = "Current Password not matched" });
+                }
+
+                
+
+               
+                user.Password = BCrypt.Net.BCrypt.HashPassword(req.NewPassword);
+               
+
+                await _db.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    status = 1,
+                    message = "Password has been changed successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         private string GenerateToken(UserModel user)
         {
 

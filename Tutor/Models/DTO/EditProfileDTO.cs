@@ -14,6 +14,6 @@ namespace Tutor.Models.DTO
 
         [Required][MinLength(10)] public string PhoneNumber { get; set; }
 
-        [AllowNull] public IFormFile ProfileImage { get; set; }
+        [AllowNull] public IFormFile? ProfileImage { get; set; }
     }
 }

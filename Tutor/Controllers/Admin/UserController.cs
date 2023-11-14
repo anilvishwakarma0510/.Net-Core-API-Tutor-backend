@@ -85,6 +85,7 @@ namespace Tutor.Controllers.Admin
                     Email = newUser.Email,
                     EmailVerified = newUser.EmailVerified,
                     Status = newUser.Status,
+                    PhoneNumber = newUser.PhoneNumber,
                     ProfileImage = newUser.ProfileImage, // Get the profile image URL
                     UserRole = new RoleDTO
                     {
@@ -168,6 +169,7 @@ namespace Tutor.Controllers.Admin
                     Email = user.Email,
                     EmailVerified = user.EmailVerified,
                     Status = user.Status,
+                    PhoneNumber = user.PhoneNumber,
                     ProfileImage = user.ProfileImage, // Get the profile image URL
                     UserRole = new RoleDTO
                     {
@@ -227,6 +229,7 @@ namespace Tutor.Controllers.Admin
                     FirstName = user.FirstName,
                     LastName = user.LastName,
                     Email = user.Email,
+                    PhoneNumber = user.PhoneNumber,
                     EmailVerified = user.EmailVerified,
                     Status = user.Status,
                     ProfileImage = user.ProfileImage, // Get the profile image URL
